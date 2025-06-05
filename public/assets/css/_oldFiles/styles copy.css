@@ -1,0 +1,32 @@
+/* Variables globales */
+:root {
+    --primary: #EF4444;
+    --secondary: #F97316;
+    --accent: #10B981;
+    --background: #FFF7ED;
+    --textPrimary: #1F2937;
+    --textSecondary: #4B5563;
+}
+
+/* Transiciones y efectos */
+* {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Componentes personalizados */
+.custom-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.error-message {
+    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4;
+}
+
+/* Fuentes */
+.font-heading {
+    font-family: 'Fredoka One', cursive;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}

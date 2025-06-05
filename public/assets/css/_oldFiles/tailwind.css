@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Personalizaciones Tailwind */
+@layer components {
+    .btn-primary {
+        @apply bg-secondary text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition;
+    }
+    
+    .input-custom {
+        @apply w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary;
+    }
+}
