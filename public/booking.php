@@ -3,6 +3,36 @@ define('CHECK_ACCESS', true);
 require_once __DIR__ . '/../src/auth/session.php';
 checkAuth();
 
+// Incluir DAOs necesarios
+require_once __DIR__ . '/../src/config/Database.php';
+require_once __DIR__ . '/../src/DAO/FoodTruckDAO.php';
+require_once __DIR__ . '/../src/DAO/MenuDAO.php';
+require_once __DIR__ . '/../src/DAO/FavoritoDAO.php';
+require_once __DIR__ . '/../src/DAO/ReservaDAO.php';
+// require_once __DIR__ . '/../src/DAO/ReservaItemDAO.php';
+
+$db = new Src\Config\Database();
+$foodtruckDAO = new Src\DAO\FoodTruckDAO($db);
+$menuDAO = new Src\DAO\MenuDAO($db);
+$favoritoDAO = new Src\DAO\FavoritoDAO($db);
+$reservaDAO = new Src\DAO\ReservaDAO($db);
+$reservaItemDAO = new Src\DAO\ReservaDAO($db);
+
+// Obtener usuario actual
+$usuarioId = $_SESSION['user_id'] ?? null;
+
+// Obtener foodtrucks desde la base de datos
+$foodtrucks = $foodtruckDAO->getAllFoodTrucks();
+
+// Obtener favoritos del usuario
+$favoritos = $favoritoDAO->getFavoritosByUsuarioId($usuarioId, true);
+$favoritosIds = array_column($favoritos, 'foodtruck_id');
+
+// Obtener menús para cada foodtruck
+foreach ($foodtrucks as &$foodtruck) {
+    $foodtruck['menu'] = $menuDAO->getMenuByFoodTruckId($foodtruck['id']);
+}
+
 include __DIR__ . '/../templates/header.php';
 ?>
 
@@ -163,124 +193,23 @@ include __DIR__ . '/../templates/header.php';
 </style>
 
 <script>
-// Inicializar datos en localStorage si no existen
-document.addEventListener('DOMContentLoaded', function() {
-    if (!localStorage.getItem('foodtrucks')) {
-        localStorage.setItem('foodtrucks', JSON.stringify([
-            {
-                id: 1,
-                nombre: "Tacos El Güero",
-                descripcion: "Los mejores tacos de la ciudad con receta familiar",
-                rating: 4.5,
-                ubicacion: "Frente al edificio principal",
-                lat: -0.22985,
-                lng: -78.52495,
-                horarios: ["10:00", "10:30", "11:00", "11:30", "12:00"],
-                menu: [
-                    { nombre: "Taco Especial", precio: 3.99, descripcion: "Taco de pastor con piña" },
-                    { nombre: "Quesadilla", precio: 4.50, descripcion: "Quesadilla de flor de calabaza" }
-                ]
-            },
-            {
-                id: 2,
-                nombre: "Burger Paradise",
-                descripcion: "Hamburguesas gourmet con ingredientes premium",
-                rating: 4.7,
-                ubicacion: "Junto a la fuente central",
-                lat: -0.23000,
-                lng: -78.52510,
-                horarios: ["11:00", "11:30", "12:00", "12:30", "13:00"],
-                menu: [
-                    { nombre: "Clásica", precio: 6.99, descripcion: "Hamburguesa con queso y tocino" },
-                    { nombre: "Veggie", precio: 7.50, descripcion: "Hamburguesa vegetariana con portobello" }
-                ]
-            },
-            {
-                id: 3,
-                nombre: "Sushi Express",
-                descripcion: "Sushi fresco preparado al momento",
-                rating: 4.2,
-                ubicacion: "Área de comida internacional",
-                lat: -0.22970,
-                lng: -78.52480,
-                horarios: ["12:00", "12:30", "13:00", "13:30", "14:00"],
-                menu: [
-                    { nombre: "Roll California", precio: 8.99, descripcion: "Roll de cangrejo, pepino y aguacate" },
-                    { nombre: "Sashimi Variado", precio: 12.50, descripcion: "Selección de 10 piezas de sashimi" }
-                ]
-            }
-        ]));
-    }
-
-    if (!localStorage.getItem('users')) {
-        localStorage.setItem('users', JSON.stringify([
-            {
-                username: "<?= $_SESSION['username'] ?>",
-                email: "<?= $_SESSION['email'] ?? '' ?>",
-                favoritos: [1, 2],
-                reservas: []
-            }
-        ]));
-    }
-
-    if (!localStorage.getItem('reservas')) {
-        localStorage.setItem('reservas', JSON.stringify([
-            {
-                id: 1001,
-                foodtruckId: 1,
-                foodtruckName: "Tacos El Güero",
-                userId: "<?= $_SESSION['username'] ?>",
-                date: new Date().toLocaleString(),
-                items: [
-                    { nombre: "Taco Especial", cantidad: 3, precio: 3.99, descripcion: "Taco de pastor con piña" },
-                    { nombre: "Quesadilla", cantidad: 2, precio: 4.50, descripcion: "Quesadilla de flor de calabaza" }
-                ],
-                total: 21.47,
-                status: "confirmada"
-            },
-            {
-                id: 1002,
-                foodtruckId: 2,
-                foodtruckName: "Burger Paradise",
-                userId: "usuario2",
-                date: new Date().toLocaleString(),
-                items: [
-                    { nombre: "Clásica", cantidad: 1, precio: 6.99, descripcion: "Hamburguesa con queso y tocino" }
-                ],
-                total: 6.99,
-                status: "pendiente"
-            }
-        ]));
-    }
-    
-    // Iniciar la aplicación
-    initBookingApp();
-});
+// Pasamos los datos desde PHP a JavaScript
+const foodtrucks = <?= json_encode($foodtrucks) ?>;
+const userFavorites = <?= json_encode($favoritosIds) ?>;
 
 // Objeto para manejar el estado de la aplicación
 const bookingApp = {
     currentStep: 1,
-    foodtrucks: [],
     selectedFoodTruck: null,
     cart: [],
-    userFavorites: [],
     reservationId: null,
     
     init() {
-        // Cargar foodtrucks desde localStorage
-        this.foodtrucks = JSON.parse(localStorage.getItem('foodtrucks')) || [];
-        
-        // Obtener favoritos del usuario
-        const user = "<?= $_SESSION['username'] ?>";
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        const currentUser = users.find(u => u.username === user);
-        this.userFavorites = currentUser?.favoritos || [];
-        
         // Si hay un foodtruck en la URL, seleccionarlo automáticamente
         const urlParams = new URLSearchParams(window.location.search);
         const foodtruckId = urlParams.get('foodtruck');
         if (foodtruckId) {
-            const ft = this.foodtrucks.find(f => f.id == foodtruckId);
+            const ft = foodtrucks.find(f => f.id == foodtruckId);
             if (ft) {
                 this.selectFoodTruck(ft);
             }
@@ -297,8 +226,13 @@ const bookingApp = {
         container.innerHTML = `
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold">Selecciona tu Food Truck</h3>
-                <button id="btn-dashboard" class="text-primary hover:underline flex items-center">
-                    <i class="material-icons mr-1">dashboard</i> Ver Dashboard
+                <button id="btn-dashboard" class="text-primary flex items-center">
+                    <span class="flex justify-center align-center">
+                        <i class="material-icons mr-1">dashboard</i> 
+                        <span class="flex justify-center align-center hover:underline">
+                            Ver Dashboard
+                        </span>
+                    </span>
                 </button>
             </div>
             <div class="foodtruck-grid" id="foodtrucks-container"></div>
@@ -307,12 +241,35 @@ const bookingApp = {
         const foodtrucksContainer = document.getElementById('foodtrucks-container');
         foodtrucksContainer.innerHTML = '';
         
-        this.foodtrucks.forEach(foodtruck => {
-            const isFavorite = this.userFavorites.includes(foodtruck.id);
-            const stars = '★'.repeat(Math.round(foodtruck.rating)) + '☆'.repeat(5 - Math.round(foodtruck.rating));
+        foodtrucks.forEach(foodtruck => {
+            const isFavorite = userFavorites.includes(parseInt(foodtruck.id));
+            console.log(foodtruck);
+            const stars = '★'.repeat(Math.round(foodtruck.avg_rating)) + '☆'.repeat(5 - Math.round(foodtruck.avg_rating));
             
             const card = document.createElement('div');
             card.className = 'card-foodtruck relative';
+            card.innerHTML = `
+                <i class="material-icons fav-icon ${isFavorite ? 'active' : ''}" 
+                data-id="${foodtruck.id}">${isFavorite ? 'favorite' : 'favorite_border'}</i>
+                <div class="flex items-start">
+                    ${
+                        foodtruck.imagen
+                        ? `<img src="${foodtruck.imagen}" alt="${foodtruck.nombre}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0" />`
+                        : `<div class="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex-shrink-0 flex items-center justify-center text-gray-400 text-xs">Sin imagen</div>`
+                    }
+                    <div class="ml-4 flex-grow">
+                        <h4 class="font-semibold text-lg">${foodtruck.nombre}</h4>
+                        <p class="text-gray-600 text-sm mt-1">${foodtruck.descripcion}</p>
+                        <div class="flex items-center mt-2">
+                            <div class="text-orange-400">${stars}</div>
+                            <span class="text-gray-600 ml-2">${Number(foodtruck.avg_rating).toFixed(2)}</span>
+                            <span class="text-gray-600 ml-2">(${foodtruck.review_count})</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            /*
             card.innerHTML = `
                 <i class="material-icons fav-icon ${isFavorite ? 'active' : ''}" 
                    data-id="${foodtruck.id}">${isFavorite ? 'favorite' : 'favorite_border'}</i>
@@ -323,11 +280,12 @@ const bookingApp = {
                         <p class="text-gray-600 text-sm mt-1">${foodtruck.descripcion}</p>
                         <div class="flex items-center mt-2">
                             <div class="text-orange-400">${stars}</div>
-                            <span class="text-gray-600 ml-2">${foodtruck.rating.toFixed(1)}</span>
+                            <span class="text-gray-600 ml-2">${Number(foodtruck.avg_rating).toFixed(2)}</span>
+                            <span class="text-gray-600 ml-2">(${foodtruck.review_count})</span>
                         </div>
                     </div>
                 </div>
-            `;
+            `;*/
             
             // Evento para seleccionar foodtruck
             card.addEventListener('click', (e) => {
@@ -353,62 +311,81 @@ const bookingApp = {
     },
     
     renderStep2() {
-        this.updateStepIndicator();
-        
-        const container = document.getElementById('step2-container');
-        /*
-        <button id="btn-back-step1" class="text-primary hover:underline flex items-center">
-                    <i class="material-icons">arrow_back</i> Volver
-                </button>
-        */
-        container.innerHTML = `
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-semibold text-center flex-grow">Realiza tu pedido</h3>
+    this.updateStepIndicator();
+
+    const container = document.getElementById('step2-container');
+    container.innerHTML = `
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-center flex-grow">Realiza tu pedido</h3>
+        </div>
+        <div class="menu-grid">
+            <div class="menu-items space-y-4" id="menu-items-container">
+                ${this.selectedFoodTruck.menu.map(item => `
+                    <div class="menu-item border rounded-lg p-4 flex items-center space-x-4" style="padding:16px">
+                        <img src="${item.imagen || 'ruta/por/defecto.jpg'}" alt="${item.nombre}" class="w-16 h-16 object-cover rounded-lg" />
+                        <div class="flex-grow">
+                            <h4 class="font-semibold">${item.nombre}</h4>
+                            <p class="text-textSecondary text-sm">${item.descripcion}</p>
+                            <p class="text-secondary font-semibold mt-1">$${item.precio}</p>
+                        </div>
+                        <input type="number" min="0" class="quantity-input w-16" 
+                               data-item='${JSON.stringify(item).replace(/'/g, "\\'")}'
+                               value="${this.getQuantity(item.id)}" />
+                    </div>
+                `).join('')}
             </div>
-            <div class="menu-grid">
-                <div class="menu-items space-y-4" id="menu-items-container"></div>
-                <div class="resumen-pedido">
-                    <h4 class="text-lg font-semibold mb-4">Tu orden</h4>
-                    <div class="space-y-3 max-h-96 overflow-y-auto" id="cart-items-container"></div>
-                    <div class="mt-6 pt-4 border-t">
-                        <div class="flex justify-between font-semibold text-lg">
-                            <span>Total:</span>
-                            <span id="cart-total">$0.00</span>
-                        </div>
-                        <div class="flex gap-3 mt-6">
-                            <button id="btn-back-step1-2" class="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition">
+            <div class="resumen-pedido">
+                <h4 class="text-lg font-semibold mb-4">Tu orden</h4>
+                <div class="space-y-3 max-h-96 overflow-y-auto" id="cart-items-container"></div>
+                <div class="mt-6 pt-4 border-t">
+                    <div class="flex justify-between font-semibold text-lg">
+                        <span>Total:</span>
+                        <span id="cart-total">$0.00</span>
+                    </div>
+                    <div class="flex gap-3 mt-6">
+                        <button id="btn-back-step1-2" class="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition">
+                            <span class="flex justify-center align-center">
                                 <i class="material-icons mr-1">arrow_back</i> Atrás
-                            </button>
-                            <button id="btn-confirm-reservation" class="flex-1 bg-secondary text-white py-2 rounded-lg hover:bg-orange-600 transition flex items-center justify-center">
+                            </span
+                        </button>
+                        <button id="btn-confirm-reservation" class="flex-1 bg-secondary text-white py-2 rounded-lg hover:bg-orange-600 transition flex items-center justify-center">
+                            <span class="flex justify-center align-center">
                                 Confirmar <i class="material-icons ml-1">check</i>
-                            </button>
-                        </div>
+                            </span
+                        </button>
                     </div>
                 </div>
             </div>
-        `;
-        
-        // Configurar eventos adicionales
-        document.getElementById('btn-back-step1')?.addEventListener('click', () => {
-            this.currentStep = 1;
-            this.renderStep1();
+        </div>
+    `;
+
+    // Configurar eventos para inputs de cantidad
+    const inputs = container.querySelectorAll('.quantity-input');
+    inputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            try {
+                const itemData = JSON.parse(e.target.dataset.item.replace(/\\'/g, "'"));
+                this.updateQuantity(itemData, parseInt(e.target.value) || 0);
+                this.renderCart();
+            } catch (error) {
+                console.error('Error parsing item data:', error);
+            }
         });
-        
-        document.getElementById('btn-back-step1-2')?.addEventListener('click', () => {
-            this.currentStep = 1;
-            this.renderStep1();
-        });
-        
-        document.getElementById('btn-confirm-reservation')?.addEventListener('click', () => {
-            this.saveReservation();
-        });
-        
-        // Renderizar menú
-        this.renderMenuItems();
-        
-        // Renderizar carrito
-        this.renderCart();
-    },
+    });
+
+    // Configurar botones
+    document.getElementById('btn-back-step1-2')?.addEventListener('click', () => {
+        this.currentStep = 1;
+        this.renderStep1();
+    });
+
+    document.getElementById('btn-confirm-reservation')?.addEventListener('click', () => {
+        this.saveReservation();
+    });
+
+    // Renderizar carrito
+    this.renderCart();
+},
     
     renderStep3() {
         this.updateStepIndicator();
@@ -497,13 +474,13 @@ const bookingApp = {
                     <div class="ml-4 flex-grow">
                         <h4 class="font-semibold">${item.nombre}</h4>
                         <p class="text-textSecondary text-sm mt-1">${item.descripcion}</p>
-                        <p class="text-secondary font-semibold mt-2">$${item.precio.toFixed(2)}</p>
+                        <p class="text-secondary font-semibold mt-2">$${item.precio}</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2 ml-4">
                     <input type="number" min="0" class="quantity-input" 
                            data-item='${JSON.stringify(item).replace(/'/g, "\\'")}'
-                           value="${this.getQuantity(item.nombre)}">
+                           value="${this.getQuantity(item.id)}">
                 </div>
             `;
             
@@ -579,24 +556,27 @@ const bookingApp = {
         this.renderStep2();
     },
     
-    getQuantity(itemName) {
-        const cartItem = this.cart.find(i => i.nombre === itemName);
+    getQuantity(itemId) {
+        const cartItem = this.cart.find(i => i.id == itemId);
         return cartItem ? cartItem.quantity : 0;
     },
     
     updateQuantity(item, quantity) {
         if (quantity <= 0) {
-            this.cart = this.cart.filter(i => i.nombre !== item.nombre);
+            this.cart = this.cart.filter(i => i.id != item.id);
             return;
         }
         
-        const index = this.cart.findIndex(i => i.nombre === item.nombre);
+        const index = this.cart.findIndex(i => i.id == item.id);
         
         if (index !== -1) {
             this.cart[index].quantity = quantity;
         } else {
             this.cart.push({
-                ...item,
+                id: item.id,
+                nombre: item.nombre,
+                descripcion: item.descripcion,
+                precio: parseFloat(item.precio),
                 quantity: quantity
             });
         }
@@ -607,33 +587,30 @@ const bookingApp = {
     },
     
     toggleFavorite(foodtruckId, iconElement) {
-        const user = "<?= $_SESSION['username'] ?>";
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        let userIndex = users.findIndex(u => u.username === user);
+        const isFavorite = iconElement.textContent === 'favorite';
         
-        if (userIndex === -1) {
-            users.push({
-                username: user,
-                favoritos: [],
-                reservas: []
-            });
-            userIndex = users.length - 1;
-        }
-        
-        const favIndex = users[userIndex].favoritos.indexOf(foodtruckId);
-        
-        if (favIndex === -1) {
-            users[userIndex].favoritos.push(foodtruckId);
-            iconElement.textContent = 'favorite';
-            iconElement.classList.add('active');
-        } else {
-            users[userIndex].favoritos.splice(favIndex, 1);
-            iconElement.textContent = 'favorite_border';
-            iconElement.classList.remove('active');
-        }
-        
-        localStorage.setItem('users', JSON.stringify(users));
-        this.userFavorites = users[userIndex].favoritos;
+        fetch('toggle_favorite.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                foodtruck_id: foodtruckId,
+                action: isFavorite ? 'remove' : 'add'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                iconElement.textContent = isFavorite ? 'favorite_border' : 'favorite';
+                iconElement.classList.toggle('active', !isFavorite);
+            } else {
+                alert('Error al actualizar favoritos');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     },
     
     saveReservation() {
@@ -642,51 +619,33 @@ const bookingApp = {
             return;
         }
         
-        const user = "<?= $_SESSION['username'] ?>";
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        let userIndex = users.findIndex(u => u.username === user);
-        
-        if (userIndex === -1) {
-            users.push({
-                username: user,
-                favoritos: [],
-                reservas: []
-            });
-            userIndex = users.length - 1;
-        }
-        
-        // Crear reserva
-        const reservation = {
-            id: Date.now(),
-            foodtruckId: this.selectedFoodTruck.id,
-            foodtruckName: this.selectedFoodTruck.nombre,
-            userId: user,
-            date: new Date().toLocaleString(),
-            items: this.cart.map(item => ({
-                nombre: item.nombre,
-                precio: item.precio,
-                cantidad: item.quantity,
-                descripcion: item.descripcion
-            })),
-            total: this.cartTotal(),
-            status: 'pending'
+        const reservationData = {
+            foodtruck_id: this.selectedFoodTruck.id,
+            items: this.cart,
+            total: this.cartTotal()
         };
         
-        // Guardar en el usuario
-        if (!users[userIndex].reservas) {
-            users[userIndex].reservas = [];
-        }
-        users[userIndex].reservas.push(reservation.id);
-        localStorage.setItem('users', JSON.stringify(users));
-        
-        // Guardar en reservas públicas
-        const publicReservations = JSON.parse(localStorage.getItem('reservas')) || [];
-        publicReservations.push(reservation);
-        localStorage.setItem('reservas', JSON.stringify(publicReservations));
-        
-        this.reservationId = reservation.id;
-        this.currentStep = 3;
-        this.renderStep3();
+        fetch('create_reserva.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reservationData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.reservationId = data.reserva_id;
+                this.currentStep = 3;
+                this.renderStep3();
+            } else {
+                alert('Error al crear la reserva: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al crear la reserva');
+        });
     },
     
     generateQR(reservationId) {
@@ -708,6 +667,9 @@ const bookingApp = {
 function initBookingApp() {
     bookingApp.init();
 }
+
+// Iniciar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initBookingApp);
 </script>
 
 <section class="max-w-6xl mx-auto bg-white rounded-lg custom-shadow p-6 md:p-8">

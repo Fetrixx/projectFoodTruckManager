@@ -3,61 +3,69 @@
 
 <nav class="bg-primary text-white shadow-lg">
     <div class="container mx-auto px-4 py-3">
-        <!-- Contenedor principal -->
-        <div class="flex items-center justify-between">
-            <!-- Logo y botón móvil -->
-            <div class="flex items-center flex-1">
+        <!-- Contenedor principal modificado -->
+        <div class="flex flex-col">
+            <!-- Primera fila: Logo y usuario -->
+            <div class="flex justify-between items-center mb-3">
+                <!-- Logo alineado a la derecha -->
+                <!-- <div class="flex-1"></div> -->
+
+
                 <button id="mobileMenuButton" class="md:hidden mr-2">
                     <i class="material-icons text-3xl">menu</i>
                 </button>
-                <a href="main.php" class="font-heading text-xl md:text-2xl whitespace-nowrap">
+
+                <!-- Espaciador izquierdo -->
+                <a href="main.php" class="font-heading text-xl md:text-2xl whitespace-nowrap flex justify-start flex-1">
                     🍔 FoodTruck Park Manager
                 </a>
+
+                <!-- Botón móvil y usuario -->
+                <div class="flex items-center justify-end flex-1">
+                    <!-- <button id="mobileMenuButton" class="md:hidden mr-2">
+                        <i class="material-icons text-3xl">menu</i>
+                    </button> -->
+
+                    <!-- Bloque usuario desktop -->
+                    <div class="hidden md:flex items-center space-x-3 ml-auto">
+                        <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
+                            <a href="admin.php" class="font-semibold italic rounded-full px-4 py-2 border border-orange-500 text-orange-400 
+                  hover:bg-orange-500 hover:text-white transition-colors duration-300">
+                                Admin Panel
+                            </a>
+                        <?php endif; ?>
+
+                        <a href="perfil.php" class="hover:text-secondary">
+                            <?= htmlspecialchars($_SESSION['username'] ?? 'Invitado') ?>
+                        </a>
+                        <a href="/projectFoodTruckManager/public/logout.php"
+                            class="bg-secondary px-3 py-1.5 rounded-md hover:bg-orange-600 transition-colors flex items-center"
+                            style="border-radius: 20px;">
+                            <i class="material-icons text-sm">logout</i>
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <!-- Navegación desktop -->
-            <div class="hidden md:flex items-center space-x-4">
+            <!-- Segunda fila: Navegación desktop -->
+            <div class="hidden md:flex justify-start items-center space-x-4">
                 <a href="main.php" class="hover:text-secondary transition-colors duration-200">Inicio</a>
-                <!-- <a href="#servicios" class="hover:text-secondary transition-colors duration-200">Servicios</a> -->
                 <a href="contacto.php" class="hover:text-secondary transition-colors duration-200">Contacto</a>
                 <a href="https://foodtruckmanager.blogspot.com" target="_blank"
                     class="flex items-center hover:text-secondary transition-colors duration-200">
-                    <i class="material-icons mr-1">article</i> Blog
+                    <i class="material-icons mr-1">newspaper</i> Blog Externo
                 </a>
-
+                <a href="http://localhost/wordpress/" target="_blank"
+                    class="flex items-center hover:text-secondary transition-colors duration-200">
+                    <i class="material-icons mr-1">article</i> Wordpress
+                </a>
                 <a href="reviews.php" class="hover:text-secondary transition-colors duration-200">Reseñas</a>
                 <a href="favorites.php" class="hover:text-secondary transition-colors duration-200">Favoritos</a>
                 <a href="reservas.php" class="hover:text-secondary transition-colors duration-200">Reservas</a>
-<!-- 
-                <a href="reservas.php" class="hover:text-secondary">Reservas</a>
-
-                <a href="reseñas.php" class="hover:text-secondary transition-colors duration-200">Reseñas</a>
-                <a href="favoritos.php" class="hover:text-secondary transition-colors duration-200">Favoritos</a> -->
-
-                <!-- <a href="perfil.php" class="hover:text-secondary">Perfil</a> -->
-                <?php if ($_SESSION['username'] === 'admin'): ?>
-                    <a href="admin.php" class="hover:text-secondary" style="font-weight: bold; font-style: italic;">Admin Panel</a>
-                <?php endif; ?>
-
-                <!-- Perfil usuario -->
-                <div class="flex items-center ml-4 space-x-3">
-                    <a href="perfil.php" class="hover:text-secondary">
-                            <?= htmlspecialchars($_SESSION['username'] ?? 'Invitado') ?>
-                    </a>
-                    <a href="/projectFoodTruckManager/public/logout.php"
-                        class="bg-secondary px-3 py-1.5 rounded-md hover:bg-orange-600 transition-colors flex items-center"
-                        style="border-radius: 20px;">
-                        <i class="material-icons text-sm">logout</i> 
-                    </a>
-                        <!-- <a href="/projectFoodTruckManager/public/logout.php"
-                            class="bg-secondary p-2 rounded-md hover:bg-orange-600 transition-colors flex items-center">
-                            <i class="material-icons text-sm">logout</i>
-                        </a> -->
-                    <!-- <a href="/projectFoodTruckManager/public/logout.php"
-                        class="bg-secondary px-3 py-1.5 rounded-md hover:bg-orange-600 transition-colors flex items-center">
-                        <i class="material-icons mr-1 text-sm">logout</i> Salir
-                    </a> -->
-                </div>
+                <a href="about.php"
+                    class="flex items-center hover:text-secondary transition-colors duration-200">
+                    <i class="material-icons mr-1">info</i> Acerca de mi
+                </a>
             </div>
         </div>
     </div>
@@ -81,8 +89,11 @@
             <!-- <a href="#servicios" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Servicios</a> -->
             <a href="contacto.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Contacto</a>
             <a href="https://foodtruckmanager.blogspot.com" target="_blank"
-                class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Blog</a>
-            
+                class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Blog Externo</a>
+            <a href="http://localhost/wordpress/" target="_blank"
+                class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Wordpress</a>
+
+
             <!-- <a href="reservas.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Reservas</a>
             <a href="reseñas.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Reseñas</a>
             <a href="favoritos.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Favoritos</a> -->
@@ -92,9 +103,16 @@
             <a href="reservas.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Reservas</a>
 
             <a href="perfil.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Perfil</a>
-            <?php if ($_SESSION['username'] === 'admin'): ?>
-                <a href="admin.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Admin</a>
+            <?php if (isset($_SESSION['admin']) && $_SESSION['admin'] === true): ?>
+                <a href="admin.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors"
+                    style="font-weight: bold">
+                    Admin Panel
+                </a>
             <?php endif; ?>
+            
+            <a href="about.php"
+                class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Acerca de mi</a>
+
         </nav>
 
         <!-- Pie del menú -->

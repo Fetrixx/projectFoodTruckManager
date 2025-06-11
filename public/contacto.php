@@ -3,6 +3,8 @@ define('CHECK_ACCESS', true);
 require_once __DIR__ . '/../src/auth/session.php';
 checkAuth();
 
+$pageTitle = "Contacto";
+
 include __DIR__ . '/../templates/header.php';
 ?>
 
@@ -10,8 +12,10 @@ include __DIR__ . '/../templates/header.php';
     <section class="max-w-4xl mx-auto bg-white rounded-lg custom-shadow p-8">
         <h2 class="font-heading text-3xl text-primary mb-6 text-center">Contáctenos</h2>
         <h4 class="font-headingtext-primary mb-6 text-center" style="font-style: italic;">
-
-            (Propuesta <?php echo PRESENTADO_POR; ?>) </h4>
+<!-- 
+            (Propuesta <?php
+            //  echo PRESENTADO_POR;
+              ?>) </h4> -->
 
         <div class="grid">
             <div class="grid md:grid-cols-2 gap-8">

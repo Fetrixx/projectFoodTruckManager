@@ -31,3 +31,10 @@ function checkAuth() {
         exit;
     }
 }
+
+function requireAdmin() {
+    if (!isset($_SESSION['admin']) || !$_SESSION['admin']) {
+        header('HTTP/1.0 403 Forbidden');
+        exit('Acceso prohibido');
+    }
+}

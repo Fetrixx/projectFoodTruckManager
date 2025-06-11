@@ -3,9 +3,9 @@ namespace Src\Config;
 
 class Database {
     private $dbhost = "localhost";
-    private $dbuser = "root";
-    private $dbpass = "";
-    private $dbname = "practica1";
+    private $dbuser = "root"; // usuario de la bd
+    private $dbpass = ""; // pass de la bd
+    private $dbname = "foodtruck_manager"; // nombre de la bd
     public $conn;
 
     public function __construct() {

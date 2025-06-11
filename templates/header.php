@@ -19,7 +19,15 @@ require_once __DIR__ . '/../src/config/constants.php'; // Ajusta la ruta según 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodTruck Park Manager</title>
+    <title>
+        <?=
+            (isset($pageTitle) && $pageTitle !== '')
+            ? htmlspecialchars($pageTitle) . ' - ' . htmlspecialchars(PRESENTADO_POR)
+            : 'FoodTruck Park Manager - ' . htmlspecialchars(PRESENTADO_POR)
+            ?>
+    </title>
+
+
 
     <!-- Tailwind CSS CDN con configuración -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,7 +60,7 @@ require_once __DIR__ . '/../src/config/constants.php'; // Ajusta la ruta según 
             }
         }
     </script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             <?php if (!isset($_SESSION['storage_init'])): ?>
