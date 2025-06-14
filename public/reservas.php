@@ -177,30 +177,6 @@ include __DIR__ . '/../templates/header.php';
                         <span class="font-bold text-lg">Total: $<?= number_format($reserva['total'], 2) ?></span>
                         <span class="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Tu
                             reserva</span>
-                        <!--   <div>
-                            <form action="" method="POST" style="display:inline;">
-                                <input type="hidden" name="id" value="<?= $reserva['id'] ?>">
-                                <input type="hidden" name="action" value="delete">
-                                <button type="submit" class="text-red-600 hover:underline">Eliminar</button>
-                            </form>
-                            <form action="" method="POST" style="display:inline;">
-                                <input type="hidden" name="id" value="<?= $reserva['id'] ?>">
-                                <input type="hidden" name="action" value="cancel">
-                                <button type="submit" class="text-orange-600 hover:underline">Cancelar</button>
-                            </form>
-                            <form action="" method="POST" style="display:inline;">
-                                <input type="hidden" name="id" value="<?= $reserva['id'] ?>">
-                                <input type="hidden" name="action" value="complete">
-                                <button type="submit" class="text-green-600 hover:underline">Confirmar</button>
-                            </form>
-                           Opcional: Editar
-                            <form action="" method="POST" style="display:inline;">
-                                <input type="hidden" name="id" value="<?= $reserva['id'] ?>">
-                                <input type="hidden" name="action" value="edit">
-                                <button type="submit" class="text-blue-600 hover:underline">Editar</button>
-                            </form>
-                          
-                        </div>  -->
                     </div>
 
                     <div class="mt-4 max-w-md mx-auto">

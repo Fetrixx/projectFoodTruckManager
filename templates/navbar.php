@@ -1,5 +1,29 @@
 <?php if (!defined('CHECK_ACCESS'))
-    exit('Acceso directo prohibido'); ?>
+    exit('Acceso directo prohibido');
+function getLocalIPWindows()
+{
+    $output = [];
+    $ip = 'localhost'; // Valor por defecto
+    exec('ipconfig', $output);
+
+    foreach ($output as $line) {
+        // Ajusta la expresión regular si tu Windows está en español
+        if (preg_match('/IPv4.*?:\s*([\d\.]+)/i', $line, $matches)) {
+            $ip = $matches[1];
+            break;
+        }
+        // Para Windows en español, descomenta esta línea y comenta la anterior:
+        // if (preg_match('/Dirección IPv4.*?:\s*([\d\.]+)/i', $line, $matches)) {
+        //     $ip = $matches[1];
+        //     break;
+        // }
+    }
+    return $ip;
+}
+
+$vmIP = getLocalIPWindows();
+$wordpressURL = "http://$vmIP/wordpress/";
+?>
 
 <nav class="bg-primary text-white shadow-lg">
     <div class="container mx-auto px-4 py-3">
@@ -59,11 +83,15 @@
                     class="flex items-center hover:text-secondary transition-colors duration-200">
                     <i class="material-icons mr-1">article</i> Wordpress
                 </a>
+                <a href="<?= htmlspecialchars($wordpressURL) ?>" target="_blank"
+                    class="flex items-center hover:text-secondary transition-colors duration-200">
+                    <i class="material-icons mr-1">article</i> Wordpress
+                </a>
+
                 <a href="reviews.php" class="hover:text-secondary transition-colors duration-200">Reseñas</a>
                 <a href="favorites.php" class="hover:text-secondary transition-colors duration-200">Favoritos</a>
                 <a href="reservas.php" class="hover:text-secondary transition-colors duration-200">Reservas</a>
-                <a href="about.php"
-                    class="flex items-center hover:text-secondary transition-colors duration-200">
+                <a href="about.php" class="flex items-center hover:text-secondary transition-colors duration-200">
                     <i class="material-icons mr-1">info</i> Acerca de mi
                 </a>
             </div>
@@ -90,7 +118,7 @@
             <a href="contacto.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Contacto</a>
             <a href="https://foodtruckmanager.blogspot.com" target="_blank"
                 class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Blog Externo</a>
-            <a href="http://localhost/wordpress/" target="_blank"
+            <a href="<?= htmlspecialchars($wordpressURL) ?>" target="_blank"
                 class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Wordpress</a>
 
 
@@ -109,9 +137,8 @@
                     Admin Panel
                 </a>
             <?php endif; ?>
-            
-            <a href="about.php"
-                class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Acerca de mi</a>
+
+            <a href="about.php" class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors">Acerca de mi</a>
 
         </nav>
 
